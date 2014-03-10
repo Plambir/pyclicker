@@ -1,0 +1,4 @@
+pyclicker
+=========
+
+Simple puzzle game
