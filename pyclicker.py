@@ -83,6 +83,9 @@ class CellView(pygame.sprite.Sprite):
         y = cell.y * CHIP_SIZE[1] + FIRST_CHIP[1]
         self.rect.move_ip(x, y)
 
+    def collidepoint(self, pos):
+        return self.rect.collidepoint(pos)
+
     def update(self):
         #TODO: get ref not value
         self.image = pygame.Surface(CHIP_SIZE)
@@ -100,6 +103,12 @@ class GameView:
 
     def draw(self, surface):
         self.cell_views.draw(surface)
+
+    def click(self, pos):
+        for cell_view in self.cell_views:
+            if cell_view.collidepoint(pos):
+                cell_view.cell.set_chip(COLOR0)
+                return
 
 class Application:
     def __init__(self):
@@ -123,6 +132,9 @@ class Application:
                 if event.type == KEYUP:
                     if event.key == K_ESCAPE:
                         self.esc()
+                if event.type == MOUSEBUTTONUP:
+                    if event.button == 1:
+                        self.game.click(event.pos)
             self.game.update()
             self.game.draw(self.display_surface)
             pygame.display.update()
