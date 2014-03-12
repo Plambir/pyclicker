@@ -47,6 +47,11 @@ class Cell:
         random.shuffle(colors)
         self.chip = colors[0]
 
+    def swap(self, other):
+        chip = self.chip
+        self.chip = other.chip
+        other.chip = chip
+
 
 class Grid:
     def __init__(self):
@@ -71,6 +76,55 @@ class Grid:
                 up    = self.get(x, y - 1)
                 down  = self.get(x, y + 1)
                 self.grid[x][y].random(luck, left, right, up, down)
+
+    def is_pair(self, cell):
+        color = cell.get_color()
+        x = cell.x
+        y = cell.y
+        neighbords = [
+            self.get(x - 1, y),
+            self.get(x + 1, y),
+            self.get(x, y - 1),
+            self.get(x, y + 1)
+        ]
+        for neighbord in neighbords:
+            if neighbord is not None and neighbord.get_color() == color:
+                return True
+        return False
+
+    def destroy(self, cell):
+        color = cell.get_color()
+        cell.set_chip(None)
+        x = cell.x
+        y = cell.y
+        neighbords = [
+            self.get(x - 1, y),
+            self.get(x + 1, y),
+            self.get(x, y - 1),
+            self.get(x, y + 1)
+        ]
+        for neighbord in neighbords:
+            if neighbord is not None and neighbord.get_color() == color:
+                self.destroy(neighbord)
+
+    def respawn(self, luck, view):
+        for y in reversed(range(HEIGHT)):
+            for x in range(WIDTH):
+                if self.grid[x][y].get_color() == COLOR0:
+                    for up in reversed(range(y)):
+                        if self.grid[x][up].get_color() != COLOR0:
+                            self.grid[x][y].swap(self.grid[x][up])
+                            break
+        for x in range(WIDTH):
+            for y in range(HEIGHT):
+                if self.grid[x][y].get_color() != COLOR0:
+                    continue
+                left  = self.get(x - 1, y)
+                right = self.get(x + 1, y)
+                up    = self.get(x, y - 1)
+                down  = self.get(x, y + 1)
+                self.grid[x][y].random(luck, left, right, up, down)
+
 
 
 class CellView(pygame.sprite.Sprite):
@@ -107,8 +161,10 @@ class GameView:
     def click(self, pos):
         for cell_view in self.cell_views:
             if cell_view.collidepoint(pos):
-                cell_view.cell.set_chip(COLOR0)
-                return
+                if self.grid.is_pair(cell_view.cell):
+                    self.grid.destroy(cell_view.cell)
+                break
+        self.grid.respawn(30, self)
 
 class Application:
     def __init__(self):
