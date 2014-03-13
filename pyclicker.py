@@ -92,8 +92,10 @@ class Grid:
                 return True
         return False
 
-    def destroy(self, cell):
+    def destroy(self, cell, score=1):
         color = cell.get_color()
+        if cell.chip is None:
+            return 0
         cell.set_chip(None)
         x = cell.x
         y = cell.y
@@ -105,9 +107,11 @@ class Grid:
         ]
         for neighbord in neighbords:
             if neighbord is not None and neighbord.get_color() == color:
-                self.destroy(neighbord)
+                score += self.destroy(neighbord, score)
 
-    def respawn(self, luck, view):
+        return score
+
+    def fall(self, view):
         for y in reversed(range(HEIGHT)):
             for x in range(WIDTH):
                 if self.grid[x][y].get_color() == COLOR0:
@@ -115,6 +119,9 @@ class Grid:
                         if self.grid[x][up].get_color() != COLOR0:
                             self.grid[x][y].swap(self.grid[x][up])
                             break
+
+    def respawn(self, luck, view):
+        self.fall(view)
         for x in range(WIDTH):
             for y in range(HEIGHT):
                 if self.grid[x][y].get_color() != COLOR0:
@@ -149,22 +156,35 @@ class GameView:
     def __init__(self):
         self.grid = Grid()
         self.cell_views = pygame.sprite.Group()
+        self.font = pygame.font.SysFont("Arial", 12);
         for cell in self.grid.cells:
             self.cell_views.add(CellView(cell))
+        self.score = 0
+        self.move = 30
 
     def update(self):
         self.cell_views.update()
 
     def draw(self, surface):
+        surface.fill((0,0,0))
+        score_view = self.font.render("score: " + str(self.score), 1, (255,255,255))
+        surface.blit(score_view, score_view.get_rect())
+        if self.move < 0:
+            self.move = 0
+        move_view = self.font.render("move: " + str(self.move), 1, (255,255,255))
+        surface.blit(move_view, score_view.get_rect().move(0, score_view.get_rect().height))
         self.cell_views.draw(surface)
 
     def click(self, pos):
         for cell_view in self.cell_views:
             if cell_view.collidepoint(pos):
                 if self.grid.is_pair(cell_view.cell):
-                    self.grid.destroy(cell_view.cell)
+                    self.score += self.grid.destroy(cell_view.cell) * 2
+                    self.move -= 1
                 break
-        self.grid.respawn(30, self)
+        self.grid.fall(self)
+        if self.move > 0:
+            self.grid.respawn(30, self)
 
 class Application:
     def __init__(self):
