@@ -169,9 +169,12 @@ class GameView:
         surface.fill((0,0,0))
         score_view = self.font.render("score: " + str(self.score), 1, (255,255,255))
         surface.blit(score_view, score_view.get_rect())
+        move_text = "move: "
         if self.move < 0:
-            self.move = 0
-        move_view = self.font.render("move: " + str(self.move), 1, (255,255,255))
+            move_text += str(0)
+        else:
+            move_text += str(self.move)
+        move_view = self.font.render(move_text, 1, (255,255,255))
         surface.blit(move_view, score_view.get_rect().move(0, score_view.get_rect().height))
         self.cell_views.draw(surface)
 
@@ -183,7 +186,7 @@ class GameView:
                     self.move -= 1
                 break
         self.grid.fall(self)
-        if self.move > 0:
+        if self.move >= 0:
             self.grid.respawn(30, self)
 
 class Application:
