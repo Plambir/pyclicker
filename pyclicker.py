@@ -37,18 +37,17 @@ class Cell:
         else:
             return self.chip
 
-    def random(self, luck, left, right, up, down):
+    def random(self, luck, neighbors):
         colors = [COLOR1, COLOR2, COLOR3, COLOR4, COLOR5]
-        neighbords = [left, right, up, down]
-        random.shuffle(neighbords)
-        for neighbord in neighbords:
-            if neighbord is None or neighbord.chip is None:
+        random.shuffle(neighbors)
+        for neighbor in neighbors:
+            if neighbor is None or neighbor.chip is None:
                 continue
             if random.randint(1, 100) < luck:
-                self.chip = neighbord.chip
+                self.chip = neighbor.chip
                 return
-            if neighbord.chip in colors:
-                colors.remove(neighbord.chip)
+            if neighbor.chip in colors:
+                colors.remove(neighbor.chip)
         random.shuffle(colors)
         self.chip = colors[0]
 
@@ -68,27 +67,39 @@ class Grid:
             return None
         return self.grid[x][y]
 
+    def get_neighbors(self, cell):
+        return [
+            self.get(cell.x - 1, cell.y),
+            self.get(cell.x + 1, cell.y),
+            self.get(cell.x, cell.y - 1),
+            self.get(cell.x, cell.y + 1)
+        ]
+
     def random(self, luck):
         for x in range(WIDTH):
             for y in range(HEIGHT):
-                left  = self.get(x - 1, y)
-                right = self.get(x + 1, y)
-                up    = self.get(x, y - 1)
-                down  = self.get(x, y + 1)
-                self.grid[x][y].random(luck, left, right, up, down)
+                neighbors = self.get_neighbors(self.grid[x][y])
+                self.grid[x][y].random(luck, neighbors)
+
+    def has_move(self):
+        for x in range(WIDTH):
+            for y in range(HEIGHT):
+                if self.grid[x][y].chip is None:
+                    continue
+                neighbors = self.get_neighbors(self.grid[x][y])
+                for neighbor in neighbors:
+                    if neighbor.chip is not None \
+                        and neighbor.chip == self.grid[x][y]:
+                        return True
+        return False
 
     def is_pair(self, cell):
         color = cell.get_color()
         x = cell.x
         y = cell.y
-        neighbords = [
-            self.get(x - 1, y),
-            self.get(x + 1, y),
-            self.get(x, y - 1),
-            self.get(x, y + 1)
-        ]
-        for neighbord in neighbords:
-            if neighbord is not None and neighbord.get_color() == color:
+        neighbors = self.get_neighbors(cell)
+        for neighbor in neighbors:
+            if neighbor is not None and neighbor.get_color() == color:
                 return True
         return False
 
@@ -99,15 +110,10 @@ class Grid:
         cell.set_chip(None)
         x = cell.x
         y = cell.y
-        neighbords = [
-            self.get(x - 1, y),
-            self.get(x + 1, y),
-            self.get(x, y - 1),
-            self.get(x, y + 1)
-        ]
-        for neighbord in neighbords:
-            if neighbord is not None and neighbord.get_color() == color:
-                score += self.destroy(neighbord, score)
+        neighbors = self.get_neighbors(cell)
+        for neighbor in neighbors:
+            if neighbor is not None and neighbor.get_color() == color:
+                score += self.destroy(neighbor, score)
 
         return score
 
@@ -126,11 +132,7 @@ class Grid:
             for y in range(HEIGHT):
                 if self.grid[x][y].get_color() != COLOR0:
                     continue
-                left  = self.get(x - 1, y)
-                right = self.get(x + 1, y)
-                up    = self.get(x, y - 1)
-                down  = self.get(x, y + 1)
-                self.grid[x][y].random(luck, left, right, up, down)
+                self.grid[x][y].random(luck, self.get_neighbors(self.grid[x][y]))
 
 
 
