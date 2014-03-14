@@ -17,6 +17,11 @@ CHIP_SIZE  = (40, 40)
 WIDTH = 6
 HEIGHT = 10
 
+def swap_cell(cell_a, cell_b):
+    chip_a = cell_a.chip
+    cell_a.chip = cell_b.chip
+    cell_b.chip = chip_a
+
 class Cell:
     def __init__(self, x, y):
         self.chip = None
@@ -46,11 +51,6 @@ class Cell:
                 colors.remove(neighbord.chip)
         random.shuffle(colors)
         self.chip = colors[0]
-
-    def swap(self, other):
-        chip = self.chip
-        self.chip = other.chip
-        other.chip = chip
 
 
 class Grid:
@@ -117,7 +117,7 @@ class Grid:
                 if self.grid[x][y].get_color() == COLOR0:
                     for up in reversed(range(y)):
                         if self.grid[x][up].get_color() != COLOR0:
-                            self.grid[x][y].swap(self.grid[x][up])
+                            swap_cell(self.grid[x][y], self.grid[x][up])
                             break
 
     def respawn(self, luck, view):
