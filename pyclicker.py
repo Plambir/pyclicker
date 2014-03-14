@@ -19,6 +19,26 @@ CHIP_SIZE  = (40, 40)
 WIDTH = 6
 HEIGHT = 10
 
+class GameRule:
+    def __init__(self):
+        self.current = self.start
+
+    def start(self):
+        pass
+
+    def respawn(self):
+        pass
+
+    def wait_input(self):
+        pass
+
+    def game_over(self):
+        pass
+
+    def update(self):
+        self.current()
+
+
 def swap_cell(cell_a, cell_b):
     chip_a = cell_a.chip
     cell_a.chip = cell_b.chip
