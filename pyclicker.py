@@ -5,6 +5,7 @@ import pygame
 import random
 from pygame.locals import *
 
+SCREEN = (320, 480)
 COLOR0 = (255, 255, 255)
 COLOR1 = (178, 60,  60)
 COLOR2 = (134, 105, 48)
@@ -88,8 +89,8 @@ class Grid:
                     continue
                 neighbors = self.get_neighbors(self.grid[x][y])
                 for neighbor in neighbors:
-                    if neighbor.chip is not None \
-                        and neighbor.chip == self.grid[x][y]:
+                    if neighbor is not None \
+                        and neighbor.chip == self.grid[x][y].chip:
                         return True
         return False
 
@@ -163,22 +164,31 @@ class GameView:
             self.cell_views.add(CellView(cell))
         self.score = 0
         self.move = 30
+        self.game_over = False
 
     def update(self):
+        if not self.grid.has_move():
+            self.game_over = True
         self.cell_views.update()
 
     def draw(self, surface):
         surface.fill((0,0,0))
-        score_view = self.font.render("score: " + str(self.score), 1, (255,255,255))
-        surface.blit(score_view, score_view.get_rect())
-        move_text = "move: "
-        if self.move < 0:
-            move_text += str(0)
+        if self.game_over:
+            game_over_text = self.font.render("Game Over", 1, (255,255,255))
+            rect = game_over_text.get_rect()
+            rect.move(SCREEN[0] / 2 + rect.width / 2, SCREEN[1] / 2 + rect.height)
+            surface.blit(game_over_text, rect)
         else:
-            move_text += str(self.move)
-        move_view = self.font.render(move_text, 1, (255,255,255))
-        surface.blit(move_view, score_view.get_rect().move(0, score_view.get_rect().height))
-        self.cell_views.draw(surface)
+            score_view = self.font.render("score: " + str(self.score), 1, (255,255,255))
+            surface.blit(score_view, score_view.get_rect())
+            move_text = "move: "
+            if self.move < 0:
+                move_text += str(0)
+            else:
+                move_text += str(self.move)
+            move_view = self.font.render(move_text, 1, (255,255,255))
+            surface.blit(move_view, score_view.get_rect().move(0, score_view.get_rect().height))
+            self.cell_views.draw(surface)
 
     def click(self, pos):
         for cell_view in self.cell_views:
@@ -194,7 +204,7 @@ class GameView:
 class Application:
     def __init__(self):
         pygame.init()
-        self.display_surface = pygame.display.set_mode((320,480))
+        self.display_surface = pygame.display.set_mode(SCREEN)
         pygame.display.set_caption("PyClicker")
         self.is_run = False
         self.game = GameView()
