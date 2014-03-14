@@ -6,6 +6,7 @@ import random
 from pygame.locals import *
 
 SCREEN = (320, 480)
+
 COLOR0 = (255, 255, 255)
 COLOR1 = (178, 60,  60)
 COLOR2 = (134, 105, 48)
@@ -29,11 +30,14 @@ class Cell:
         self.x = x
         self.y = y
 
+    def is_life(self):
+        return self.chip is not None
+
     def set_chip(self, chip):
         self.chip = chip
 
     def get_color(self):
-        if self.chip is None:
+        if not self.is_life():
             return COLOR0
         else:
             return self.chip
@@ -85,7 +89,7 @@ class Grid:
     def has_move(self):
         for x in range(WIDTH):
             for y in range(HEIGHT):
-                if self.grid[x][y].chip is None:
+                if not self.grid[x][y].is_life():
                     continue
                 neighbors = self.get_neighbors(self.grid[x][y])
                 for neighbor in neighbors:
@@ -106,7 +110,7 @@ class Grid:
 
     def destroy(self, cell, score=1):
         color = cell.get_color()
-        if cell.chip is None:
+        if not cell.is_life():
             return 0
         cell.set_chip(None)
         x = cell.x
