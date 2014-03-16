@@ -234,14 +234,15 @@ class GameApplication:
         self.app.append_mouseup_listener(self.mouseup)
         self.app.set_update(self.update)
         self.app.set_draw(self.draw)
+        self.app.set_fps_limit(30)
         self.game = GameView()
         self.game.grid.random(50)
         self.game.update()
 
-    def update(self):
+    def update(self, dt):
         self.game.update()
 
-    def draw(self, display_surface):
+    def draw(self, display_surface, dt):
         self.game.draw(display_surface)
 
     def keyup_esc(self, type, key):
