@@ -1,8 +1,10 @@
 #!/usr/bin/env python2
 # encoding: utf-8
 
-import pygame
 import random
+import game
+
+import pygame
 from pygame.locals import *
 
 SCREEN = (320, 480)
@@ -225,36 +227,34 @@ class GameView:
         if self.move >= 0:
             self.grid.respawn(30, self)
 
-class Application:
+class GameApplication:
     def __init__(self):
-        pygame.init()
-        self.display_surface = pygame.display.set_mode(SCREEN)
-        pygame.display.set_caption("PyClicker")
-        self.is_run = False
+        self.app = game.Application(SCREEN, "PyClicker")
+        self.app.append_keyup_listener(self.keyup_esc)
+        self.app.append_mouseup_listener(self.mouseup)
+        self.app.set_update(self.update)
+        self.app.set_draw(self.draw)
         self.game = GameView()
         self.game.grid.random(50)
         self.game.update()
 
-    def esc(self):
-        self.is_run = False
+    def update(self):
+        self.game.update()
+
+    def draw(self, display_surface):
+        self.game.draw(display_surface)
+
+    def keyup_esc(self, type, key):
+        if key == K_ESCAPE:
+            self.app.esc()
+
+    def mouseup(self, type, button, pos):
+        if button == 1:
+            self.game.click(pos)
 
     def run(self):
-        self.is_run = True
-        while self.is_run:
-            for event in pygame.event.get():
-                if event.type == QUIT:
-                    self.esc()
-                if event.type == KEYUP:
-                    if event.key == K_ESCAPE:
-                        self.esc()
-                if event.type == MOUSEBUTTONUP:
-                    if event.button == 1:
-                        self.game.click(event.pos)
-            self.game.update()
-            self.game.draw(self.display_surface)
-            pygame.display.update()
-        pygame.quit()
+        self.app.run()
 
 if __name__ == '__main__':
-    app = Application()
+    app = GameApplication()
     app.run()
